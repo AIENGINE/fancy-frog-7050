@@ -41,10 +41,19 @@ async function cppArchitectureAndDesign(content: string, token: string) {
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    return await response.json();
+
+    const jsonData = await response.json();
+    console.log('Parsed response:', JSON.stringify(jsonData, null, 2));
+
+    if (jsonData.completion) {
+      const innerData = JSON.parse(jsonData.completion);
+      return innerData;
+    } else {
+      throw new Error('Unexpected response format');
+    }
   } catch (error) {
     console.error('Error in cppArchitectureAndDesign:', error);
-    return { data: { Answer: ["Error occurred while fetching data"] } };
+    return { Answer: ["Error occurred while fetching data"] };
   }
 }
 
@@ -70,10 +79,19 @@ async function cppPerformanceAndConcurrency(content: string, token: string) {
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    return await response.json();
+
+    const jsonData = await response.json();
+    console.log('Parsed response:', JSON.stringify(jsonData, null, 2));
+
+    if (jsonData.completion) {
+      const innerData = JSON.parse(jsonData.completion);
+      return innerData;
+    } else {
+      throw new Error('Unexpected response format');
+    }
   } catch (error) {
     console.error('Error in cppPerformanceAndConcurrency:', error);
-    return { data: { Answer: ["Error occurred while fetching data"] } };
+    return { Answer: ["Error occurred while fetching data"] };
   }
 }
 
@@ -99,11 +117,19 @@ async function machineLearningResource(content: string, token: string) {
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
-    return await response.json();
-  } catch (error) {
 
+    const jsonData = await response.json();
+    console.log('Parsed response:', JSON.stringify(jsonData, null, 2));
+
+    if (jsonData.completion) {
+      const innerData = JSON.parse(jsonData.completion);
+      return innerData;
+    } else {
+      throw new Error('Unexpected response format');
+    }
+  } catch (error) {
     console.error('Error in machineLearningResource:', error);
-    return { data: { Answer: ["Error occurred while fetching data"] } };
+    return { Answer: ["Error occurred while fetching data"] };
   }
  
 }
@@ -148,15 +174,15 @@ async function processWebsiteContent(c: any, url: string) {
 
     // Helper function to check if the response is valid
   const isValidResponse = (response: any) => {
-    return response && response.data && Array.isArray(response.data.Answer) && response.data.Answer.length > 0;
+    return response && Array.isArray(response.Answer) && response.Answer.length > 0;
   };
-  
+
   // Filter out invalid responses and those with "Not found in the context"
   const responses = [
     { name: 'C++ Architecture and Design', data: cppArchitectureResponse },
     { name: 'C++ Performance and Concurrency', data: performanceResponse },
     { name: 'Machine Learning Resources', data: mlTopicsResponse },
-  ].filter((response) => isValidResponse(response) && response.data.Answer[0] !== "Not found in context.");
+  ].filter((response) => isValidResponse(response.data) && response.data.Answer[0] !== "Not found in context.");
 
   return responses;
 }
@@ -187,7 +213,13 @@ app.get('/analyze', async (c) => {
       <ul>
     `;
     for (const item of response.data.Answer) {
-      htmlContent += `<li>${item}</li>`;
+      if (typeof item === 'string') {
+        htmlContent += `<li>${item}</li>`;
+      } else if (typeof item === 'object') {
+        for (const [key, value] of Object.entries(item)) {
+          htmlContent += `<li><strong>${key}:</strong> ${value}</li>`;
+        }
+      }
     }
     htmlContent += `</ul>`;
     
